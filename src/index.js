@@ -10,7 +10,7 @@
 
 export default {
 	async fetch(request, env, ctx) {
-		let url = new URL("https://www.gates.com")
+		let url = new URL(request.url)
 		let response = await fetch(url)
 		let contentType = response.headers.get("content-type") || ""
 		if (!contentType.includes("text/html")) {
