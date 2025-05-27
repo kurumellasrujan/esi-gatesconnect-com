@@ -12,7 +12,7 @@ export default {
 	async fetch(request, env, ctx) {
 		//let url = new URL(request.url)
 		//let response = await fetch("https://dev.gatesconnect.com/content/gatesconnect/us/en/ecommerce/home2.html")
-		let response = await this.fetch(request)
+		let response = await fetch(request)
 		let contentType = response.headers.get("content-type") || ""
 		if (!contentType.includes("text/html")) {
 			return response
