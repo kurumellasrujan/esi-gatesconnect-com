@@ -10,14 +10,16 @@
 
 export default {
 	async fetch(request, env, ctx) {
-		let url = new URL(request.url)
-		let response = await fetch(url)
+		//let url = new URL(request.url)
+		//let response = await fetch("https://dev.gatesconnect.com/content/gatesconnect/us/en/ecommerce/home2.html")
+		let response = await this.fetch(request)
 		let contentType = response.headers.get("content-type") || ""
 		if (!contentType.includes("text/html")) {
 			return response
 		}
 
 		let html = await response.text()
+		//console.log(html)
 		// Find all <esi:include src="..."/> and collect their srcs
 		let esiRegex = /<esi:include src="([^"]+)"\s*\/?>/g
 		let matches = [...html.matchAll(esiRegex)]
