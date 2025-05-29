@@ -38,13 +38,13 @@ export default {
 			output = output.replace(match[0], fragments[idx])
 		})
 
-		const newResponse = new Response(output, {
-			headers: response.headers.set("Cache-Control", "max-age=0"),
-			status: response.status
-		})	
+		// const newResponse = new Response(output, {
+		// 	headers: response.headers.set("Cache-Control", "max-age=0"),
+		// 	status: response.status
+		// })	
 
-		//return new Response(output, {status: response.status, headers: response.headers })
-		return newResponse
+		return new Response(output, {status: response.status, headers: response.headers })
+		//return newResponse
 		
 		//console.log(response.headers)
 		
