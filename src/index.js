@@ -1,53 +1,47 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
-
 export default {
-	async fetch(request, env, ctx) {
-		//let url = new URL(request.url)
-		//let response = await fetch("https://dev.gatesconnect.com/content/gatesconnect/us/en/ecommerce/home2.html")
-		let response = await fetch(request)
-		let contentType = response.headers.get("content-type") || ""
-		if (!contentType.includes("text/html")) {
-			return response
-		}
+  async fetch(request, env, ctx) {
+    const response = await fetch(request);
 
-		let html = await response.text()
-		//console.log(html)
-		// Find all <esi:include src="..."/> and collect their srcs
-		let esiRegex = /<esi:include src="([^"]+)"\s*\/?>/g
-		let matches = [...html.matchAll(esiRegex)]
-		let fragmentPromises = matches.map(match => 
-			fetch(new URL(match[1], request.url))
-			.then(res => res.text())
-			.catch(() => "")
-		)
+    // Only process HTML responses
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("text/html")) {
+      return response;
+    }
 
-		// Fetch all fragments in parallel
-		let fragments = await Promise.all(fragmentPromises)
-		
-		// Replace each ESI tag in the original HTML with fetched content
-		let output = html
-		matches.forEach((match, idx) => {
-			output = output.replace(match[0], fragments[idx])
-		})
+    let html = await response.text();
 
-		// const newResponse = new Response(output, {
-		// 	headers: response.headers.set("Cache-Control", "max-age=0"),
-		// 	status: response.status
-		// })	
+    // Match all <esi:include src="..."/>
+    const esiIncludeRegex = /<esi:include\s+src=["']([^"']+)["']\s*\/?>/gi;
+    const matches = [...html.matchAll(esiIncludeRegex)];
 
-		return new Response(output, {status: response.status, headers: response.headers })
-		//return newResponse
-		
-		//console.log(response.headers)
-		
-		//return new Response("Hello World!");
-	},
+    // Create a list of promises to fetch each include
+    const fetchPromises = matches.map(async (match) => {
+      const tag = match[0];
+      const src = match[1];
+      try {
+        const esiUrl = new URL(src, request.url);
+        const esiResp = await fetch(esiUrl.toString());
+        const esiContent = await esiResp.text();
+        return { tag, content: esiContent };
+      } catch (e) {
+        console.error(`ESI fetch failed for ${src}:`, e);
+        return { tag, content: `<!-- ESI include failed: ${src} -->` };
+      }
+    });
+
+    // Wait for all includes to be fetched
+    const results = await Promise.all(fetchPromises);
+
+    // Replace each ESI tag in HTML with the fetched content
+    for (const { tag, content } of results) {
+      html = html.replace(tag, content);
+    }
+
+    return new Response(html, {
+      status: response.status,
+      headers: {
+        "content-type": "text/html;charset=UTF-8",
+      },
+    });
+  },
 };
