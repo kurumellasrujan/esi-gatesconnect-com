@@ -38,7 +38,7 @@ export default {
 			output = output.replace(match[0], fragments[idx])
 		})
 
-		return new Response(output, {status: response.status, headers: response.headers.set('cache-control', 'max-age=0') })
+		return new Response(output, {status: response.status, headers: response.headers })
 		
 		//console.log(response.headers)
 		
