@@ -9,7 +9,8 @@ export default {
 
     let html = await response.text();
 
-    const esiIncludeRegex = /<esi:include\s+src=["']([^"']+)["']\s*\/?>/gi;
+    //const esiIncludeRegex = /<esi:include\s+src=["']([^"']+)["']\s*\/?>/gi;
+    const esiIncludeRegex = /<esi:include src="([^"]+)"\s*\/?>/g;
     const matches = [...html.matchAll(esiIncludeRegex)];
 
     const headersToForward = [
