@@ -2,6 +2,15 @@ export default {
   async fetch(request, env, ctx) {
     const response = await fetch(request);
 
+    // Check if the origin server sent a 301 redirect
+    if (response.status === 301 || response.status === 302) {
+      const location = response.headers.get("Location");
+      if (location) {
+        return Response.redirect(location, 301);
+      }
+    }
+
+
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("text/html")) {
       return response;
