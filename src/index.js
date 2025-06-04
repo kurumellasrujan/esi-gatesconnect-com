@@ -11,6 +11,7 @@ export default {
           'Cache-Control': 'no-store',
         }
       });
+    }
 
 
     const contentType = response.headers.get("content-type") || "";
