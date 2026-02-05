@@ -59,11 +59,16 @@ export default {
       html = html.replace(tag, content);
     }
 
+    // Copy all headers from Origin
+    const newHeaders = new Headers(response.headers)
+
+    // Ensure correct content type (origin might already have it, but we overwrite)
+    newHeaders.set("content-type", "text/html;charset=UTF-8");
+
+    // Return HTML with all origin headers preserved
     return new Response(html, {
       status: response.status,
-      headers: {
-        "content-type": "text/html;charset=UTF-8",
-      },
+      headers: newHeaders,
     });
   },
 };
