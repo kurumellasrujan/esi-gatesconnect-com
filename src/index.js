@@ -2,16 +2,28 @@ export default {
   async fetch(request, env, ctx) {
     const response = await fetch(request);
 
-    // Check if the origin server sent a 301 redirect
+    // Check if the origin server sent a 301 redirect and preserve all response headers
     if (response.status === 301 || response.status === 302) {
-      const location = response.headers.get("Location");
+      const headers = new Headers(response.headers);
+
+      // Normalize location to an absolute URL if origin sends a relative one
+      const location = headers.get("Location");
       if (location) {
-        return Response.redirect(location, 301);
+        const absoluteLocation = new URL(location, request.url).toString();
+        headers.set("Location", absoluteLocation);
       }
+
+      // Return the redirect with ALL origin headers intact
+      // Body is set to null for redirects; browsers ignore redirect bodies
+      return new Response(null, {
+        status: response.status,
+        headers,
+      });
     }
 
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("text/html")) {
+      // Not HTML — return origin response untouched (including headers)
       return response;
     }
 
@@ -21,6 +33,7 @@ export default {
     const esiIncludeRegex = /<esi:include src="([^"]+)"\s*\/?>/g;
     const matches = [...html.matchAll(esiIncludeRegex)];
 
+    // Forward only chosen request headers to ESI sub-requests
     const headersToForward = [
       "cookie"
     ];
