@@ -9,16 +9,17 @@ export default {
       // Normalize location to an absolute URL if origin sends a relative one
       const location = headers.get("Location");
       if (location) {
-        const absoluteLocation = new URL(location, request.url).toString();
-        headers.set("Location", absoluteLocation);
+        //const absoluteLocation = new URL(location, request.url).toString();
+        //headers.set("Location", absoluteLocation);
+        return Response.redirect(location, 301)
       }
 
       // Return the redirect with ALL origin headers intact
       // Body is set to null for redirects; browsers ignore redirect bodies
-      return new Response(null, {
+      /*return new Response(null, {
         status: response.status,
         headers,
-      });
+      });*/
     }
 
     const contentType = response.headers.get("content-type") || "";
@@ -81,7 +82,9 @@ export default {
     // Return HTML with all origin headers preserved
     return new Response(html, {
       status: response.status,
-      headers: newHeaders,
+      headers: {
+        "content-type": "text/html;charset=UTF-8",
+      },
     });
   },
 };
